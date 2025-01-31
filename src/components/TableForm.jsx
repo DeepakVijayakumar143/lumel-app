@@ -46,7 +46,7 @@ const TableForm = ({ id, setData, variance }) => {
           parent.value = parent.value + Number(val);
           for (const child of parent.children) {
             child.variance = parent.variance;
-            child.value += (10 / 100) * child.value;
+            child.value += (child.variance / 100) * child.value;
           }
           break;
         } else {
