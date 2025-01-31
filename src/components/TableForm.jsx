@@ -1,111 +1,70 @@
 import React, { useState } from "react";
 import { TableCell, Button } from "@mui/material";
 
-const TableForm = ({ label, setData }) => {
+const TableForm = ({ id, setData, variance }) => {
   const [value, setValue] = useState("");
-  const [variance, setVariance] = useState(0);
 
-  const calAllocPercent = (percent, label) => {
-    const numPercent = Number(percent);
-    if (numPercent == null || isNaN(numPercent)) return;
-
-    setData((prevData) => {
-      let newVariance = 0;
-
-      const updatedRows = prevData.rows.map((item) => {
-        if (item.id === label) {
-          const increment = (item.value * numPercent) / 100;
-          const newParentValue = item.value + increment;
-          newVariance = ((newParentValue - item.value) / item.value) * 100;
-
-          const updatedChildren = item.children.map((child) => {
-            const childContributionPercent = child.value / item.value;
-            const newChildValue =
-              Math.round(childContributionPercent * newParentValue * 100) / 100;
-            return { ...child, value: newChildValue };
-          });
-
-          return { ...item, value: newParentValue, children: updatedChildren };
-        }
-        const updatedChildren = item.children.map((child) => {
-          if (child.id === label) {
-            const increment = (child.value * numPercent) / 100;
-            const newChildValue = child.value + increment;
-            newVariance = ((newChildValue - child.value) / child.value) * 100;
-
-            return { ...child, value: newChildValue };
+  const calAllocPercent = (percent, id) => {
+    setData((prev) => {
+      const newData = [...prev];
+      for (const parent of newData) {
+        if (parent.id === id) {
+          parent.variance = percent;
+          parent.value += (percent / 100) * parent.value;
+          for (const child of parent.children) {
+            child.variance = parent.variance;
+            child.value += (percent / 100) * child.value;
           }
-          return child;
-        });
-
-        // Update parent variance
-        const newParentValue = updatedChildren.reduce(
-          (total, child) => total + child.value,
-          0
-        );
-        const parentVariance =
-          ((newParentValue - item.value) / item.value) * 100;
-
-        return {
-          ...item,
-          value: newParentValue,
-          children: updatedChildren,
-          variance: parentVariance.toFixed(2),
-        };
-      });
-
-      setVariance(newVariance.toFixed(2));
-      return { ...prevData, rows: updatedRows };
+          break;
+        } else {
+          for (const child of parent.children) {
+            if (child.id === id) {
+              child.variance = percent;
+              const existingChildValue = child.value;
+              child.value += (percent / 100) * child.value;
+              const existingParentValue = parent.value;
+              parent.value += child.value - existingChildValue;
+              parent.variance = (
+                100 -
+                (existingParentValue / parent.value) * 100
+              ).toFixed(2);
+            }
+          }
+        }
+      }
+      return newData;
     });
   };
 
-  const calAllocVal = (val, label) => {
-    const numVal = Number(val);
-    if (numVal == null || isNaN(numVal)) return;
-
-    setData((prevData) => {
-      let newVariance = 0;
-
-      const updatedRows = prevData.rows.map((item) => {
-        if (item.id === label) {
-          // Update parent
-          const newParentValue = item.value + numVal;
-          newVariance = ((newParentValue - item.value) / item.value) * 100;
-
-          const updatedChildren = item.children.map((child) => {
-            const childContributionPercent = child.value / item.value;
-            const newChildValue =
-              Math.round(childContributionPercent * newParentValue * 100) / 100;
-            return { ...child, value: newChildValue };
-          });
-
-          return { ...item, value: newParentValue, children: updatedChildren };
-        }
-        const updatedChildren = item.children.map((child) => {
-          if (child.id === label) {
-            const newChildValue = child.value + numVal;
-            newVariance = ((newChildValue - child.value) / child.value) * 100;
-            return { ...child, value: newChildValue };
+  const calAllocVal = (val, id) => {
+    setData((prev) => {
+      const newData = [...prev];
+      for (const parent of newData) {
+        if (parent.id === id) {
+          const variance = ((val / parent.value) * 100).toFixed(2);
+          parent.variance = variance;
+          parent.value = parent.value + Number(val);
+          for (const child of parent.children) {
+            child.variance = parent.variance;
+            child.value += (10 / 100) * child.value;
           }
-          return child;
-        });
-        const newParentValue = updatedChildren.reduce(
-          (total, child) => total + child.value,
-          0
-        );
-        const parentVariance =
-          ((newParentValue - item.value) / item.value) * 100;
-
-        return {
-          ...item,
-          value: newParentValue,
-          children: updatedChildren,
-          variance: parentVariance.toFixed(2),
-        };
-      });
-
-      setVariance(newVariance.toFixed(2));
-      return { ...prevData, rows: updatedRows };
+          break;
+        } else {
+          for (const child of parent.children) {
+            if (child.id === id) {
+              child.variance = ((val / child.value) * 100).toFixed(2);
+              child.value += Number(val);
+              const existingParentValue = parent.value;
+              parent.value += Number(val);
+              parent.variance = (
+                100 -
+                (existingParentValue / parent.value) * 100
+              ).toFixed(2);
+            }
+          }
+        }
+      }
+      return newData;
     });
   };
 
@@ -119,15 +78,12 @@ const TableForm = ({ label, setData }) => {
         />
       </TableCell>
       <TableCell>
-        <Button
-          variant="outlined"
-          onClick={() => calAllocPercent(value, label)}
-        >
+        <Button variant="outlined" onClick={() => calAllocPercent(value, id)}>
           Calculate Allocation %
         </Button>
       </TableCell>
       <TableCell>
-        <Button variant="outlined" onClick={() => calAllocVal(value, label)}>
+        <Button variant="outlined" onClick={() => calAllocVal(value, id)}>
           Calculate Allocation Val
         </Button>
       </TableCell>

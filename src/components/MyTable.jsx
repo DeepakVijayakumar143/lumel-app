@@ -46,7 +46,16 @@ const MyTable = () => {
       },
     ],
   };
-  const [data, setData] = useState(source);
+  const rows = source.rows;
+  for (const item of rows) {
+    item["variance"] = 0;
+    if (item.hasOwnProperty("children")) {
+      for (const child of item.children) {
+        child["variance"] = 0;
+      }
+    }
+  }
+  const [data, setData] = useState(rows);
 
   return (
     <>
@@ -62,7 +71,7 @@ const MyTable = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.rows.map((item) => {
+          {data.map((item) => {
             return (
               <TableRowGroup
                 key={item.id}

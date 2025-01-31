@@ -7,13 +7,17 @@ const TableRowGroup = ({ row, setData }) => {
       <TableRow>
         <TableCell>{row.label}</TableCell>
         <TableCell>{row.value}</TableCell>
-        <TableForm label={row.id} setData={setData} />
+        <TableForm id={row.id} variance={row.variance} setData={setData} />
       </TableRow>
       {row.children.map((child) => (
         <TableRow key={child.id}>
           <TableCell>{`--${child.label}`}</TableCell>
           <TableCell>{child.value}</TableCell>
-          <TableForm label={child.id} setData={setData}></TableForm>
+          <TableForm
+            id={child.id}
+            variance={child.variance}
+            setData={setData}
+          ></TableForm>
         </TableRow>
       ))}
     </>
