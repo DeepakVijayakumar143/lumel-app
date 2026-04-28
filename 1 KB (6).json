@@ -2,7 +2,7 @@
 {
     "employee": {
         "id": "E00002",
-        "name": "Bryan Smith JR",
+        "name": "Bryan Paul JR",
         "position": "Chemical engineer",
         "department": {
             "id": "D080",
